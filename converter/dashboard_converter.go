@@ -202,10 +202,15 @@ var REQUEST = map[string]stringFunc{
 	//		return Must(convertFromDefinition(QUERY, k, v))
 	//	})
 	//},
-	"response_format": stringGen("response_format"),
-	"rum_query":       stringGen("rum_query"),
-	"security_query":  stringGen("security_query"),
-	"show_present":    stringGen("show_present"),
+	"response_format": func(v any) string {
+		if v == "scalar" || v == "timeseries" {
+			return ""
+		}
+		return assignmentString("response_format", v)
+	},
+	"rum_query":      stringGen("rum_query"),
+	"security_query": stringGen("security_query"),
+	"show_present":   stringGen("show_present"),
 	//"sort": func(v any) string {
 	//	return block("sort", v.(Jmap), func(k1 string, v1 any) string {
 	//		return Must(convertFromDefinition(REQUEST_SORT, k1, v1))
