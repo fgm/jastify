@@ -11,10 +11,9 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/goccy/go-json"
-)
 
-//go:embed openapi.yaml
-var openapi []byte
+	"github.com/fgm/jastify/exp"
+)
 
 type Schema openapi3.Schema
 type SchemaRef openapi3.SchemaRef
@@ -79,7 +78,7 @@ func (x *Schema) MarshalYAML() (any, error) {
 
 func getRoot() *openapi3.Schema {
 	loader := openapi3.NewLoader()
-	doc, err := loader.LoadFromData(openapi)
+	doc, err := loader.LoadFromData(exp.OpenAPI)
 	if err != nil {
 		log.Fatal(err)
 	}

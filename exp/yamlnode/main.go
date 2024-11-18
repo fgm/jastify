@@ -8,31 +8,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func rawScalar() *yaml.Node {
-	return &yaml.Node{
-		Kind:  yaml.ScalarNode,
-		Tag:   "!!str",
-		Value: "a value",
-	}
-}
-
-func stringDQ() *yaml.Node {
-	return &yaml.Node{
-		Kind: yaml.DocumentNode,
-		Content: []*yaml.Node{
-			{
-				Kind:        yaml.ScalarNode,
-				Style:       yaml.DoubleQuotedStyle,
-				Tag:         "!!str",
-				Value:       "a value",
-				HeadComment: "Head",
-				LineComment: "Line",
-				FootComment: "Foot",
-			},
-		},
-	}
-}
-
 func alias() *yaml.Node {
 	const anchor = "ref"
 	sn := &yaml.Node{
@@ -121,74 +96,6 @@ func mapDefault() *yaml.Node {
 						Value: "w",
 					},
 				},
-			},
-		},
-	}
-}
-
-func stringSQ() *yaml.Node {
-	return &yaml.Node{
-		Kind: yaml.DocumentNode,
-		Content: []*yaml.Node{
-			{
-				Kind:        yaml.ScalarNode,
-				Style:       yaml.SingleQuotedStyle,
-				Tag:         "!!str",
-				Value:       "a value",
-				HeadComment: "Head",
-				LineComment: "Line",
-				FootComment: "Foot",
-			},
-		},
-	}
-}
-
-func stringT() *yaml.Node {
-	return &yaml.Node{
-		Kind: yaml.DocumentNode,
-		Content: []*yaml.Node{
-			{
-				Kind:        yaml.ScalarNode,
-				Style:       yaml.TaggedStyle,
-				Tag:         "!!str",
-				Value:       "a value",
-				HeadComment: "Head",
-				LineComment: "Line",
-				FootComment: "Foot",
-			},
-		},
-	}
-}
-
-func stringLiteral() *yaml.Node {
-	return &yaml.Node{
-		Kind: yaml.DocumentNode,
-		Content: []*yaml.Node{
-			{
-				Kind:        yaml.ScalarNode,
-				Style:       yaml.LiteralStyle,
-				Tag:         "!!str",
-				Value:       "a value",
-				HeadComment: "Head",
-				LineComment: "Line",
-				FootComment: "Foot",
-			},
-		},
-	}
-}
-
-func stringFolded() *yaml.Node {
-	return &yaml.Node{
-		Kind: yaml.DocumentNode,
-		Content: []*yaml.Node{
-			{
-				Kind:        yaml.ScalarNode,
-				Style:       yaml.FoldedStyle,
-				Tag:         "!!str",
-				Value:       "a value",
-				HeadComment: "Head",
-				LineComment: "Line",
-				FootComment: "Foot",
 			},
 		},
 	}

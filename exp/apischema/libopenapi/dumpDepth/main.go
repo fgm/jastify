@@ -12,10 +12,9 @@ import (
 	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/pb33f/libopenapi/orderedmap"
-)
 
-//go:embed openapi.yaml
-var openapi []byte
+	"github.com/fgm/jastify/exp"
+)
 
 const (
 	Indent       = "  "
@@ -182,7 +181,7 @@ func dump(level int, sp *base.SchemaProxy, nameOverride string) {
 }
 
 func main() {
-	rawDoc, err := libopenapi.NewDocument(openapi)
+	rawDoc, err := libopenapi.NewDocument(exp.OpenAPI)
 	if err != nil {
 		log.Fatal(err)
 	}

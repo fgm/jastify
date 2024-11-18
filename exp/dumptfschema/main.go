@@ -27,7 +27,7 @@ func counter() string {
 	if !showCounter {
 		return ""
 	}
-	return fmt.Sprintf("%s", counter())
+	return counter()
 }
 
 func showType(tv schema.ValueType) string {

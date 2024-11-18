@@ -371,7 +371,7 @@ func init() {
 	}
 }
 
-func convertEventQuery(value Jmap) string {
+func ConvertEventQuery(value Jmap) string {
 	return block("query", value, func(_ string, _ any) string {
 		return blockList(Jmaps{value}, "event_query", func(k1 string, v1 any) string {
 			return Must(convertFromDefinition(EVENT_QUERY, k1, v1))
