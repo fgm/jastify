@@ -12,7 +12,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/goccy/go-json"
 
-	"github.com/fgm/jastify/exp"
+	"github.com/fgm/jastify/cmd"
 )
 
 type Schema openapi3.Schema

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/fgm/jastify/converter"
+	"github.com/fgm/jastify/converter/legacy"
+	loa "github.com/fgm/jastify/converter/libopenapi"
 )
 
 func main() {
@@ -33,7 +36,8 @@ func main() {
 		}
 		resourceName = os.Args[1]
 	default:
-		_, _ = fmt.Fprintln(os.Stderr, "Usage: \nconvert < somefile.json\nor\nconvert somefile.json")
+		name := filepath.Base(os.Args[0])
+		_, _ = fmt.Fprintf(os.Stderr, "Usage: \n%s < somefile.json\nor\nconvert somefile.json\n", name)
 		os.Exit(1)
 	}
 
@@ -49,14 +53,14 @@ func main() {
 		if resourceName == "" {
 			resourceName = "monitor_1"
 		}
-		resourceName = converter.ResourceName(resourceName)
-		tf = converter.Must(converter.GenerateMonitorTerraformCode(resourceName, parsedJson))
+		resourceName = legacy.ResourceName(resourceName)
+		tf = converter.Must(loa.GenerateMonitorTerraformCode(resourceName, parsedJson))
 	} else {
 		if resourceName == "" {
 			resourceName = "dashboard_1"
 		}
-		resourceName = converter.ResourceName(resourceName)
-		tf = converter.Must(converter.GenerateDashboardTerraformCode(resourceName, parsedJson))
+		resourceName = legacy.ResourceName(resourceName)
+		tf = converter.Must(loa.GenerateDashboardTerraformCode(resourceName, parsedJson))
 	}
 
 	fmt.Print(tf)

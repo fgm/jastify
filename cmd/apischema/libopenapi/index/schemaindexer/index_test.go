@@ -6,10 +6,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/fgm/jastify/exp/apischema/libopenapi/index/schemaindexer"
+	"github.com/fgm/jastify/cmd/apischema/libopenapi/index/schemaindexer"
 )
 
 func TestIndex(t *testing.T) {
+	t.Parallel()
 	tests := [...]struct {
 		paths    []string
 		expected string

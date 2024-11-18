@@ -4,5 +4,5 @@
 *.iml
 .history
 
-exp/*/openapi.yaml
+cmd/*/openapi.yaml
 /jastify

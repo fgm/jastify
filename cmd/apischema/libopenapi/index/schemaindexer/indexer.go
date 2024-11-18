@@ -8,7 +8,7 @@ import (
 	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 
-	"github.com/fgm/jastify/exp"
+	"github.com/fgm/jastify/cmd"
 )
 
 var (
@@ -175,13 +175,13 @@ func Index(path []string) *base.Schema {
 		case cur == nil:
 			log.Fatal("expected non-nil schema, got nil")
 
-		case tl == 1 && len(cur.Type) > 0 && cur.Type[0] == "array":
+		case tl == 1 && cur.Type[0] == "array":
 			// This is an array, so we need to re-scan for its items type,
 			// without progressing into the path.
 			cur = selectArrayItem(cur)
 			goto ChooseAction
 
-		case tl == 1 && len(cur.Type) > 0 && cur.Type[0] == "object":
+		case tl == 1 && cur.Type[0] == "object":
 			// This is an object, so we select one of its properties
 			cur = selectObjectProperty(cur, selector)
 

@@ -1,4 +1,4 @@
-package converter
+package legacy
 
 import (
 	_ "embed"
@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/sebdah/goldie/v2"
+
+	"github.com/fgm/jastify/converter"
 )
 
 //go:embed testdata/dashboard-good.json
@@ -37,7 +39,7 @@ func Test_generateDashboardTerraformCode(t *testing.T) {
 		{"timeboard", timeboardJSON, ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			var j = make(Jmap)
+			var j = make(converter.Jmap)
 			if err := json.Unmarshal(test.input, &j); err != nil {
 				t.Fatal(err)
 			}

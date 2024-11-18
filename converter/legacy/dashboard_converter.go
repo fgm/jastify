@@ -1,4 +1,4 @@
-package converter
+package legacy
 
 import (
 	"fmt"
@@ -6,11 +6,11 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+
+	"github.com/fgm/jastify/converter"
 )
 
 type (
-	Jmap       = map[string]any
-	Jmaps      = []Jmap
 	stringFunc func(any) string
 )
 
@@ -19,7 +19,7 @@ var (
 )
 
 func stringGen(name string) stringFunc {
-	return func(v any) string { return assignmentString(name, v) }
+	return func(v any) string { return AssignmentString(name, v) }
 }
 
 var WIDGET_DEFINITION map[string]stringFunc
@@ -38,49 +38,49 @@ var DASHBOARD = map[string]stringFunc{
 		if !ok {
 			log.Fatalf("template_variables expected as []any but got %T: %#v\n", v, v)
 		}
-		tvs := make(Jmaps, len(slice))
+		tvs := make(converter.Jmaps, len(slice))
 		for i, tv := range slice {
-			tvs[i], ok = tv.(Jmap)
+			tvs[i], ok = tv.(converter.Jmap)
 			if !ok {
 				log.Fatalf("template_variables[%d] expected as Jmaps but got %T: %#v\n", i, tv, tv)
 			}
 		}
-		return blockList(tvs, "template_variable", assignmentString)
+		return blockList(tvs, "template_variable", AssignmentString)
 	},
 	"template_variable_presets": func(v any) string {
-		presets := Must(JmapsFromAny(v))
+		presets := converter.Must(converter.JmapsFromAny(v))
 		return blockList(presets, "template_variable_preset", func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(TEMPLATE_VARIABLE_PRESET, k1, v1))
+			return converter.Must(convertFromDefinition(TEMPLATE_VARIABLE_PRESET, k1, v1))
 		})
 	},
 	"tags":  stringGen("tags"),
 	"title": stringGen("title"),
 	"url":   stringGen("url"),
 	"widgets": func(v any) string {
-		widgets := Must(JmapsFromAny(v))
+		widgets := converter.Must(converter.JmapsFromAny(v))
 		return convertWidgets(widgets)
 	},
 }
 
 var EVENT_QUERY = map[string]stringFunc{
 	"aggregator":  stringGen("aggregator"),
-	"compute":     func(v any) string { return block("compute", v.(Jmap), assignmentString) },
+	"compute":     func(v any) string { return block("compute", v.(converter.Jmap), AssignmentString) },
 	"data_source": stringGen("data_source"),
 	"group_by": func(v any) string {
-		groups := Must(JmapsFromAny(v))
+		groups := converter.Must(converter.JmapsFromAny(v))
 		return blockList(groups, "group_by", func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(EVENT_QUERY_GROUP_BY, k1, v1))
+			return converter.Must(convertFromDefinition(EVENT_QUERY_GROUP_BY, k1, v1))
 		})
 	},
 	"indexes": stringGen("indexes"),
 	"name":    stringGen("name"),
-	"search":  func(v any) string { return block("search", v.(Jmap), assignmentString) },
+	"search":  func(v any) string { return block("search", v.(converter.Jmap), AssignmentString) },
 }
 
 var EVENT_QUERY_GROUP_BY = map[string]stringFunc{
 	"facet": stringGen("facet"),
 	"limit": stringGen("limit"),
-	"sort":  func(v any) string { return block("sort", v.(Jmap), assignmentString) },
+	"sort":  func(v any) string { return block("sort", v.(converter.Jmap), AssignmentString) },
 }
 
 var FORMULA = map[string]stringFunc{
@@ -88,16 +88,16 @@ var FORMULA = map[string]stringFunc{
 	"cell_display_mode": stringGen("cell_display_mode"),
 	"formula":           stringGen("formula_expression "),
 	"limit": func(v any) string {
-		return block("limit", v.(Jmap), func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(FORMULA_LIMIT, k1, v1))
+		return block("limit", v.(converter.Jmap), func(k1 string, v1 any) string {
+			return converter.Must(convertFromDefinition(FORMULA_LIMIT, k1, v1))
 		})
 	},
 	//"number_format": func(v any) string {
-	//	return block("number_format", v.(Jmap), func(k1 string, v1 any) string {
-	//		return Must(convertFromDefinition(NUMBER_FORMAT, k1, v1))
+	//	return block("number_format", v.(converter.Jmap), func(k1 string, v1 any) string {
+	//		return converter.Must(convertFromDefinition(NUMBER_FORMAT, k1, v1))
 	//	})
 	//},
-	//"style": func(v any) string { return blockList(Jmaps{v.(Jmap)}, "style", assignmentString) },
+	//"style": func(v any) string { return blockList(Jmaps{v.(converter.Jmap)}, "style", AssignmentString) },
 }
 
 var FORMULA_LIMIT = map[string]stringFunc{
@@ -108,34 +108,34 @@ var FORMULA_LIMIT = map[string]stringFunc{
 var GROUP_BY = map[string]stringFunc{
 	"facet":      stringGen("facet"),
 	"limit":      stringGen("limit"),
-	"sort":       func(v any) string { return block("sort_query", v.(Jmap), assignmentString) },
-	"sort_query": func(v any) string { return block("sort_query", v.(Jmap), assignmentString) },
+	"sort":       func(v any) string { return block("sort_query", v.(converter.Jmap), AssignmentString) },
+	"sort_query": func(v any) string { return block("sort_query", v.(converter.Jmap), AssignmentString) },
 }
 
 var LOG_QUERY = map[string]stringFunc{
 	"compute": func(v any) string {
-		return block("compute_query", v.(Jmap), assignmentString)
+		return block("compute_query", v.(converter.Jmap), AssignmentString)
 	},
 	"group_by": func(v any) string {
-		groups := Must(JmapsFromAny(v))
+		groups := converter.Must(converter.JmapsFromAny(v))
 		return blockList(groups, "group_by", func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(GROUP_BY, k1, v1))
+			return converter.Must(convertFromDefinition(GROUP_BY, k1, v1))
 		})
 	},
 	"index": stringGen("index"),
 	"multi_compute": func(v any) string {
-		comps := Must(JmapsFromAny(v))
-		return blockList(comps, "multi_compute", assignmentString)
+		comps := converter.Must(converter.JmapsFromAny(v))
+		return blockList(comps, "multi_compute", AssignmentString)
 	},
 	"search": func(v any) string {
-		return assignmentString("search_query", v.(Jmap)["query"])
+		return AssignmentString("search_query", v.(converter.Jmap)["query"])
 	},
 	"search_query": stringGen("search_query"),
 }
 
 var NUMBER_FORMAT = map[string]stringFunc{
 	"unit": func(v any) string {
-		return block("unit", v.(Jmap), assignmentString)
+		return block("unit", v.(converter.Jmap), AssignmentString)
 	},
 }
 
@@ -157,34 +157,34 @@ var REQUEST = map[string]stringFunc{
 	"cell_display_mode": stringGen("cell_display_mode"),
 	"change_type":       stringGen("change_type"),
 	//"columns": func(v any) string {
-	//	values := Must(JmapsFromAny(v))
+	//	values := converter.Must(JmapsFromAny(v))
 	//	return blockList(values, "columns", func(k string, v any) string {
-	//		return Must(convertFromDefinition(REQUEST_COLUMNS, k, v))
+	//		return converter.Must(convertFromDefinition(REQUEST_COLUMNS, k, v))
 	//	})
 	//},
 	"compare_to": stringGen("compare_to"),
 	"conditional_formats": func(v any) string {
-		formats := Must(JmapsFromAny(v))
-		return blockList(formats, "conditional_formats", assignmentString)
+		formats := converter.Must(converter.JmapsFromAny(v))
+		return blockList(formats, "conditional_formats", AssignmentString)
 	},
 	"display_type": stringGen("display_type"),
-	"fill":         func(v any) string { return block("fill", v.(Jmap), assignmentString) },
+	"fill":         func(v any) string { return block("fill", v.(converter.Jmap), AssignmentString) },
 	"formulas": func(v any) string {
-		fs := Must(JmapsFromAny(v))
+		fs := converter.Must(converter.JmapsFromAny(v))
 		return blockList(fs, "formula", func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(FORMULA, k1, v1))
+			return converter.Must(convertFromDefinition(FORMULA, k1, v1))
 		})
 	},
 	"increase_good": stringGen("increase_good"),
 	"limit":         stringGen("limit"),
 	"log_query": func(v any) string {
-		return block("log_query", v.(Jmap), func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(LOG_QUERY, k1, v1))
+		return block("log_query", v.(converter.Jmap), func(k1 string, v1 any) string {
+			return converter.Must(convertFromDefinition(LOG_QUERY, k1, v1))
 		})
 	},
 	"metadata": func(v any) string {
-		meta := Must(JmapsFromAny(v))
-		return blockList(meta, "metadata", assignmentString)
+		meta := converter.Must(converter.JmapsFromAny(v))
+		return blockList(meta, "metadata", AssignmentString)
 	},
 	"network_query":  stringGen("network_query"),
 	"on_right_yaxis": stringGen("on_right_yaxis"),
@@ -194,32 +194,32 @@ var REQUEST = map[string]stringFunc{
 	"process_query":  stringGen("process_query"),
 	"q":              stringGen("q"),
 	"queries": func(v any) string {
-		queries := Must(JmapsFromAny(v))
-		return queryBlockList(queries, assignmentString)
+		queries := converter.Must(converter.JmapsFromAny(v))
+		return queryBlockList(queries, AssignmentString)
 	},
 	//"query": func(v any) string {
-	//	return block("query", v.(Jmap), func(k string, v any) string {
-	//		return Must(convertFromDefinition(QUERY, k, v))
+	//	return block("query", v.(converter.Jmap), func(k string, v any) string {
+	//		return converter.Must(convertFromDefinition(QUERY, k, v))
 	//	})
 	//},
 	"response_format": func(v any) string {
 		if v == "scalar" || v == "timeseries" {
 			return ""
 		}
-		return assignmentString("response_format", v)
+		return AssignmentString("response_format", v)
 	},
 	"rum_query":      stringGen("rum_query"),
 	"security_query": stringGen("security_query"),
 	"show_present":   stringGen("show_present"),
 	//"sort": func(v any) string {
-	//	return block("sort", v.(Jmap), func(k1 string, v1 any) string {
-	//		return Must(convertFromDefinition(REQUEST_SORT, k1, v1))
+	//	return block("sort", v.(converter.Jmap), func(k1 string, v1 any) string {
+	//		return converter.Must(convertFromDefinition(REQUEST_SORT, k1, v1))
 	//	})
 	//},
-	"style": func(v any) string { return blockList(Jmaps{v.(Jmap)}, "style", assignmentString) },
+	"style": func(v any) string { return blockList(converter.Jmaps{v.(converter.Jmap)}, "style", AssignmentString) },
 	//"text_formats": func(v any) string {
-	//	formats := Must(JmapsFromAny(v))
-	//	return blockList(formats, "text_formats", assignmentString)
+	//	formats := converter.Must(JmapsFromAny(v))
+	//	return blockList(formats, "text_formats", AssignmentString)
 	//},
 }
 
@@ -232,24 +232,24 @@ var REQUEST_SORT = map[string]stringFunc{
 	"count": stringGen("count"),
 	"order_by": func(v any) string {
 		return "" // FIXME
-		orders := Must(JmapsFromAny(v))
-		return blockList(orders, "order", assignmentString)
+		orders := converter.Must(converter.JmapsFromAny(v))
+		return blockList(orders, "order", AssignmentString)
 	},
 }
 
 var TEMPLATE_VARIABLE_PRESET = map[string]stringFunc{
 	"name": stringGen("name"),
 	"template_variables": func(v any) string {
-		vars := Must(JmapsFromAny(v))
-		return blockList(vars, "template_variable", assignmentString)
+		vars := converter.Must(converter.JmapsFromAny(v))
+		return blockList(vars, "template_variable", AssignmentString)
 	},
 }
 
 var WIDGET = map[string]stringFunc{
-	"definition": func(v any) string { return widgetDefinition(v.(Jmap)) },
+	"definition": func(v any) string { return widgetDefinition(v.(converter.Jmap)) },
 	"id":         blankGen,
 	"layout": func(v any) string {
-		return block("widget_layout", v.(Jmap), assignmentString)
+		return block("widget_layout", v.(converter.Jmap), AssignmentString)
 	},
 }
 
@@ -266,16 +266,16 @@ func init() {
 		"content":          stringGen("content"),
 		"count":            blankGen,
 		"custom_links": func(v any) string {
-			links := Must(JmapsFromAny(v))
-			return blockList(links, "custom_link", assignmentString)
+			links := converter.Must(converter.JmapsFromAny(v))
+			return blockList(links, "custom_link", AssignmentString)
 		},
 		"custom_unit":    stringGen("custom_unit"),
 		"display_format": stringGen("display_format"),
 		"env":            stringGen("env"),
-		"event":          func(v any) string { return block("event", v.(Jmap), assignmentString) },
+		"event":          func(v any) string { return block("event", v.(converter.Jmap), AssignmentString) },
 		"events": func(v any) string {
-			events := Must(JmapsFromAny(v))
-			return blockList(events, "event", assignmentString)
+			events := converter.Must(converter.JmapsFromAny(v))
+			return blockList(events, "event", AssignmentString)
 		},
 		"event_size":            stringGen("event_size"),
 		"filters":               stringGen("filters"),
@@ -297,8 +297,8 @@ func init() {
 		"logset":                blankGen,
 		"margin":                stringGen("margin"),
 		"markers": func(v any) string {
-			markers := Must(JmapsFromAny(v))
-			return blockList(markers, "marker", assignmentString)
+			markers := converter.Must(converter.JmapsFromAny(v))
+			return blockList(markers, "marker", AssignmentString)
 		},
 		"message_display":     stringGen("message_display"),
 		"no_group_hosts":      stringGen("no_group_hosts"),
@@ -307,7 +307,7 @@ func init() {
 		"precision":           stringGen("precision"),
 		"query":               stringGen("query"),
 		"requests":            convertRequests,
-		"right_yaxis":         func(v any) string { return block("right_yaxis", v.(Jmap), assignmentString) },
+		"right_yaxis":         func(v any) string { return block("right_yaxis", v.(converter.Jmap), AssignmentString) },
 		"scope":               stringGen("scope"),
 		"service":             stringGen("service"),
 		"show_breakdown":      stringGen("show_breakdown"),
@@ -331,7 +331,7 @@ func init() {
 		"sort":                convertSort,
 		"span_name":           stringGen("span_name"),
 		"start":               blankGen,
-		"style":               func(v any) string { return block("style", v.(Jmap), assignmentString) },
+		"style":               func(v any) string { return block("style", v.(converter.Jmap), AssignmentString) },
 		"summary_type":        stringGen("summary_type"),
 		"tags":                stringGen("tags"),
 		"tags_execution":      stringGen("tags_execution"),
@@ -340,15 +340,15 @@ func init() {
 		"tick_edge":           stringGen("tick_edge"),
 		"tick_pos":            stringGen("tick_pos"),
 		"time": func(v any) string {
-			if liveSpan, ok := v.(Jmap)["live_span"]; ok {
-				return assignmentString("live_span", liveSpan)
+			if liveSpan, ok := v.(converter.Jmap)["live_span"]; ok {
+				return AssignmentString("live_span", liveSpan)
 			}
 			return ""
 		},
 		"time_windows": stringGen("time_windows"),
 		//"timeseries_background": func(v any) string {
 		//	// TODO Validate constraint: Max block length == 1
-		//	return block("timeseries_background", v.(Jmap), assignmentString)
+		//	return block("timeseries_background", v.(converter.Jmap), AssignmentString)
 		//},
 		"title":          stringGen("title"),
 		"title_align":    stringGen("title_align"),
@@ -361,20 +361,20 @@ func init() {
 		"view_type":      stringGen("view_type"),
 		"viz_type":       stringGen("viz_type"),
 		"widget_layout": func(v any) string {
-			return block("widget_layout", v.(Jmap), assignmentString)
+			return block("widget_layout", v.(converter.Jmap), AssignmentString)
 		},
 		"widgets": func(v any) string {
-			return convertWidgets(Must(JmapsFromAny(v)))
+			return convertWidgets(converter.Must(converter.JmapsFromAny(v)))
 		},
-		"xaxis": func(v any) string { return block("xaxis", v.(Jmap), assignmentString) },
-		"yaxis": func(v any) string { return block("yaxis", v.(Jmap), assignmentString) },
+		"xaxis": func(v any) string { return block("xaxis", v.(converter.Jmap), AssignmentString) },
+		"yaxis": func(v any) string { return block("yaxis", v.(converter.Jmap), AssignmentString) },
 	}
 }
 
-func ConvertEventQuery(value Jmap) string {
+func ConvertEventQuery(value converter.Jmap) string {
 	return block("query", value, func(_ string, _ any) string {
-		return blockList(Jmaps{value}, "event_query", func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(EVENT_QUERY, k1, v1))
+		return blockList(converter.Jmaps{value}, "event_query", func(k1 string, v1 any) string {
+			return converter.Must(convertFromDefinition(EVENT_QUERY, k1, v1))
 		})
 	})
 }
@@ -382,40 +382,40 @@ func ConvertEventQuery(value Jmap) string {
 // convertRequests accepts either a single request as a Jmap or a requests Jmaps.
 func convertRequests(value any) string {
 	if reflect.ValueOf(value).Kind() == reflect.Slice {
-		values := Must(JmapsFromAny(value))
+		values := converter.Must(converter.JmapsFromAny(value))
 		return blockList(values, "request", func(k string, v any) string {
-			return Must(convertFromDefinition(REQUEST, k, v))
+			return converter.Must(convertFromDefinition(REQUEST, k, v))
 		})
 	}
-	return block("request", value.(Jmap), func(k string, v any) string {
-		return Must(convertFromDefinition(REQUEST, k, v))
+	return block("request", value.(converter.Jmap), func(k string, v any) string {
+		return converter.Must(convertFromDefinition(REQUEST, k, v))
 	})
 }
 
 func convertSort(v any) string {
 	if sortStr, ok := v.(string); ok {
-		return assignmentString("sort", sortStr)
+		return AssignmentString("sort", sortStr)
 	}
-	return block("sort", v.(Jmap), assignmentString)
+	return block("sort", v.(converter.Jmap), AssignmentString)
 }
 
-func convertWidgets(value Jmaps) string {
+func convertWidgets(value converter.Jmaps) string {
 	return blockList(value, "widget", func(k1 string, v1 any) string {
-		return Must(convertFromDefinition(WIDGET, k1, v1))
+		return converter.Must(convertFromDefinition(WIDGET, k1, v1))
 	})
 }
 
-func widgetDefinition(contents Jmap) string {
+func widgetDefinition(contents converter.Jmap) string {
 	definitionType := contents["type"].(string)
 	if definitionType == "slo" {
 		definitionType = "service_level_objective"
 	}
 	return block(fmt.Sprintf("%s_definition", definitionType), contents, func(k string, v any) string {
-		return Must(convertFromDefinition(WIDGET_DEFINITION, k, v))
+		return converter.Must(convertFromDefinition(WIDGET_DEFINITION, k, v))
 	})
 }
 
-func GenerateDashboardTerraformCode(resourceName string, data Jmap) (string, error) {
+func GenerateDashboardTerraformCode(resourceName string, data converter.Jmap) (string, error) {
 	var (
 		result strings.Builder
 		keys   = make([]string, 0, len(data))

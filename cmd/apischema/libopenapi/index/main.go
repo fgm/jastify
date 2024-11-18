@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fgm/jastify/exp/apischema/libopenapi/index/schemaindexer"
+	"github.com/fgm/jastify/cmd/apischema/libopenapi/index/schemaindexer"
 )
 
 func main() {
