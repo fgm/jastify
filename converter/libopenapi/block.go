@@ -65,7 +65,7 @@ func (b *TFBlock) Set(jm converter.Jmap) {
 	retry:
 		switch tvs.Type {
 		case schema.TypeInvalid:
-			arg := TFArgument{Name: tk, Value: Unsupported(v)}
+			arg := TFArgument{Name: tk, Value: Unsupported{v}}
 			b.Arguments = append(b.Arguments, arg)
 		case schema.TypeBool:
 			bv, ok := v.(bool)
@@ -88,6 +88,8 @@ func (b *TFBlock) Set(jm converter.Jmap) {
 			switch t := tvs.Elem.(type) {
 			case *schema.Resource:
 				// Provide a TFBlock
+				tvs.Type = schema.TypeInvalid
+				goto retry
 			case *schema.Schema:
 				// Provide a TFArgument
 				if reflect.ValueOf(v).Kind() != reflect.Slice {

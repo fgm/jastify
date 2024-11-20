@@ -41,7 +41,9 @@ func init() {
 
 type TFSchemaMap map[string]*schema.Schema
 
-type Unsupported any
+type Unsupported struct {
+	wrapped any
+}
 
 func Indent(level int) string {
 	return strings.Repeat(" ", level*IndentSize)
