@@ -19,7 +19,7 @@ func AssignmentString(key string, value any) string {
 		return ""
 	}
 	displayValue := LiteralString(value)
-	return fmt.Sprintf("%s = %s\n", key, displayValue)
+	return fmt.Sprintf("%s\t= %s\n", key, displayValue)
 }
 
 // Creates a block with a name and converted contents

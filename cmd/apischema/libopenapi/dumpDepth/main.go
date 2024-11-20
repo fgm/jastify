@@ -113,7 +113,7 @@ func dumpVariants(level int, name string, ssp []*base.SchemaProxy) {
 			if sp.IsReference() {
 				name = sp.GetReference()
 			} else {
-				log.Fatalf("Schema reference has no name of reference: %#v", sp)
+				log.Fatalf("SchemaMap reference has no name of reference: %#v", sp)
 			}
 		}
 		dump(level, sp, name)

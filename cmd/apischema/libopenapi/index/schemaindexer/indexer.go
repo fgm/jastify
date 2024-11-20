@@ -13,7 +13,7 @@ import (
 
 var (
 	// discriminators is a map of the references of the oneOfs in the schema,
-	// to the Schema.Properties map entry used to discriminate them, e.g. "type"
+	// to the SchemaMap.Properties map entry used to discriminate them, e.g. "type"
 	// for a widget, or "data_source" for a query_value request.
 	discriminators = map[string]string{
 		// TODO complete the 24 missing ones as needed.
@@ -153,7 +153,7 @@ func loadSchema() base.Schema {
 	return *dashboardSchema
 }
 
-// Index follows a path of selections into the DataDog client OpenAPI Schema,
+// Index follows a path of selections into the DataDog client OpenAPI SchemaMap,
 // and returns the description of the last component.
 //
 // Caveats: for elements which are OneOf, like the WidgetDefinition in

@@ -23,7 +23,7 @@ func TestIndex(t *testing.T) {
 		{[]string{"widgets", "definition", "manage_status", "query"}, "Query to filter the monitors with."},
 		{[]string{"widgets", "definition", "query_value", "requests", "conditional_formats", "comparator"}, "Comparator to apply."},
 		{[]string{"widgets", "definition", "query_value", "requests", "queries", "metrics", "query"}, "Metrics query definition."},
-		{[]string{"widgets", "definition", "query_value", "requests", "formulas", "formula"}, "String expression built from queries, formulas, and functions."},
+		{[]string{"widgets", "definition", "query_value", "requests", "formulas", "formula"}, "Render expression built from queries, formulas, and functions."},
 		// number_format exists in exported dashboards but not according to the official client.
 		// {[]string{"widgets", "definition", "query_value", "requests", "formulas", "number_format"}, ""},
 		{[]string{"widgets", "definition", "timeseries", "requests", "style", "palette"}, "Color palette to apply to the widget."},

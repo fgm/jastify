@@ -1,52 +1,82 @@
+// Package converter implements dashboard and monitor resource conversion
+// from JSON to Terraform in HCL.
+//
+// "Apps Hungarian" is used here in this way:
+//   - any identifier prefixed with "j" or "J" belongs to the JSON realm.
+//   - any identifier prefixed with "t(f)" or "T(F)" belongs to the Terraform realm.
+//
+// Exception: the JMap and JMaps types may appear in both realms.
 package converter
 
 import (
-	"fmt"
+	"io"
 	"log"
-	"slices"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
+	"github.com/terraform-providers/terraform-provider-datadog/datadog"
 
-	"github.com/fgm/jastify/cmd/apischema/libopenapi/index/schemaindexer"
 	"github.com/fgm/jastify/converter"
-	"github.com/fgm/jastify/converter/legacy"
 )
 
-func GenerateDashboardTerraformCode(resourceName string, data converter.Jmap) (string, error) {
-	sb := strings.Builder{}
-	if _, err := sb.WriteString(generate([]string{}, resourceName, data)); err != nil {
-		log.Fatal(err)
+const (
+	IndentSize            = 2
+	ReadOnlyPrefix        = "// (readonly) "
+	UnsupportedPrefix     = "// (unsupported) "
+	ResourceTypeDashboard = "datadog_dashboard"
+	ResourceTypeMonitor   = "datadog_monitor"
+)
+
+var (
+	// tfs is the Terraform schema for a dashboard.
+	trm = datadog.Provider().ResourcesMap
+)
+
+func init() {
+	if trm == nil {
+		log.Fatalf("datadog_provider has no resource named %q", ResourceTypeDashboard)
 	}
-	return sb.String(), nil
 }
 
-func generate(path []string, key string, data converter.Jmap) string {
-	var out string
-	for k, v := range data {
-		sv, ok := v.(string)
-		if !ok {
-			out += fmt.Sprintf("// Skipping %q, type %T unsupported yet\n", k, v)
-			continue // FIXME
-		}
-		cur := schemaindexer.Index(append(path, k))
-		valid := getValidValues(cur)
-		if valid != nil && !slices.Contains(valid, sv) {
-			log.Fatalf("%s has key %q, not part of %v", key, sv, valid)
-		}
-		out += legacy.AssignmentString(k, sv)
+type TFSchemaMap map[string]*schema.Schema
+
+type Unsupported any
+
+func Indent(level int) string {
+	return strings.Repeat(" ", level*IndentSize)
+}
+
+func GenerateDashboardTerraformCode(w io.Writer, tfResourceName string, jData converter.Jmap) error {
+	b := TFBlock{
+		SchemaMap: trm[ResourceTypeDashboard].SchemaMap(),
+		Type:      "resource",
+		Labels:    []string{ResourceTypeDashboard, tfResourceName},
 	}
-	return out
+	b.Set(jData)
+	if err := b.Render(w, 0); err != nil {
+		return err
+	}
+	return nil
+}
+
+func terraformKeyFromJsonKey(jk string) string {
+	mapping := map[string]string{
+		"template_variables": "template_variable",
+		"widgets":            "widget",
+	}
+	if tk, ok := mapping[jk]; ok {
+		return tk
+	}
+	return jk
 }
 
 // Returning nil means any value is valid.
-func getValidValues(cur *base.Schema) []string {
-	var tl = len(cur.Type)
-
+func GetValidValues(cur *base.Schema) []string {
 	switch {
 	case cur == nil:
 		log.Fatal("expected non-nil schema, got nil")
-	case tl > 1:
+	case len(cur.Type) > 1:
 		log.Fatalf("expected 1 type, got %v", cur.Type)
 	case cur.Type[0] == "string":
 		if cur.Enum == nil {

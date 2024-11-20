@@ -60,7 +60,7 @@ func main() {
 			resourceName = "dashboard_1"
 		}
 		resourceName = legacy.ResourceName(resourceName)
-		tf = converter.Must(loa.GenerateDashboardTerraformCode(resourceName, parsedJson))
+		loa.GenerateDashboardTerraformCode(os.Stdout, resourceName, parsedJson)
 	}
 
 	fmt.Print(tf)
