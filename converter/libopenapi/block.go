@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"reflect"
+	"slices"
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -105,4 +106,48 @@ func (b *TFBlock) Set(jm converter.Jmap) {
 			goto retry
 		}
 	}
+	b.ResolveConflicts()
+}
+
+// ResolveConflicts removes conflicting arguments, under multiple assumptions:
+//
+//   - only Arguments can be deprecated: needs to be reconsidered in the general case,
+//     but in the Datadog provider, this only applies to the agentRule in securityMonitoringRule,
+//     so we do not care in that version.
+//   - provider schema is correct, not conflicting two deprecated declarations,
+//     nor two non-deprecated declarations
+//
+// TODO verify the second assumption.
+// TODO use the result to expose the removed keys in the generated output.
+func (b *TFBlock) ResolveConflicts() []string {
+	removed := make([]string, 0)
+	for _, arg := range b.Arguments {
+		s, ok := b.SchemaMap[arg.Name]
+		if !ok {
+			log.Fatalf("argument key %q is not in schema. Should not happen", arg.Name)
+		}
+
+		// Only delete deprecated keys when they conflict with a non-deprecated
+		// key that is actually in use on the block.
+		if s.Deprecated != "" {
+			for _, c := range s.ConflictsWith {
+				if slices.ContainsFunc(b.Arguments, func(arg TFArgument) bool {
+					return arg.Name == c
+				}) {
+					removed = append(removed, arg.Name)
+				}
+			}
+		}
+	}
+	// These two steps should be redundant, as arguments should be unique,
+	// but this makes the code more resilient.
+	slices.Sort(removed)
+	slices.Compact(removed)
+
+	for _, doit := range removed {
+		b.Arguments = slices.DeleteFunc(b.Arguments, func(arg TFArgument) bool {
+			return arg.Name == doit
+		})
+	}
+	return removed
 }

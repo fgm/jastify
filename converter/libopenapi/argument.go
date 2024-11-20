@@ -55,8 +55,8 @@ func (arg *TFArgument) renderSlice(w io.Writer, depth int) error {
 	prefix, sep, suffix := "", ", ", ""
 	if len(vs) > 1 {
 		prefix = "\n" + childIndent
+		sep = ",\n" + childIndent
 		suffix = ",\n" + baseIndent
-		sep = suffix
 	}
 	for i, v := range vs {
 		sl[i] = fmt.Sprintf("%q", v)
