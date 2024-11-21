@@ -1,10 +1,22 @@
 {
   "title": "Test FGM 24K201",
   "description": "Description",
-  "restricted_roles": ["7e4f0109-a7e6-4254-b3fe-ff22b63efae3", "681eee93-3844-40cc-a06f-b674b001abbd"],
+  "dashboard_lists": [
+    515755
+  ],
+  "restricted_roles": [
+    "7e4f0109-a7e6-4254-b3fe-ff22b63efae3",
+    "681eee93-3844-40cc-a06f-b674b001abbd"
+  ],
   "widgets": [
     {
       "id": 6094222782053076,
+      "layout": {
+        "x": 3,
+        "y": 17,
+        "width": 47,
+        "height": 15
+      },
       "definition": {
         "title": "ECS",
         "type": "group",
@@ -28,7 +40,14 @@
                   },
                   "display_type": "area",
                   "response_format": "event_list",
-                  "formulas": [{ "formula": "query1" }, { "formula": "query2" }],
+                  "formulas": [
+                    {
+                      "formula": "query1"
+                    },
+                    {
+                      "formula": "query2"
+                    }
+                  ],
                   "queries": [
                     {
                       "data_source": "metrics",
@@ -56,8 +75,16 @@
     }
   ],
   "template_variables": [
-    { "name": "env", "default": "*", "prefix": "env" },
-    { "name": "client", "default": "*", "prefix": "client" }
+    {
+      "name": "env",
+      "default": "*",
+      "prefix": "env"
+    },
+    {
+      "name": "client",
+      "default": "*",
+      "prefix": "client"
+    }
   ],
   "layout_type": "ordered",
   "is_read_only": false,

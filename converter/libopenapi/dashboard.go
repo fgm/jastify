@@ -17,6 +17,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/terraform-providers/terraform-provider-datadog/datadog"
 
+	"github.com/fgm/jastify/cmd/apischema/libopenapi/index/schemaindexer"
 	"github.com/fgm/jastify/converter"
 )
 
@@ -55,21 +56,42 @@ func GenerateDashboardTerraformCode(w io.Writer, tfResourceName string, jData co
 		Type:      "resource",
 		Labels:    []string{ResourceTypeDashboard, tfResourceName},
 	}
-	b.Set(jData)
+	b.Set(converter.Path{}, jData)
 	if err := b.Render(w, 0); err != nil {
 		return err
 	}
 	return nil
 }
 
-func terraformKeyFromJsonKey(jk string) string {
-	mapping := map[string]string{
+func terraformKeyFromJsonKey(path converter.Path, jk string) string {
+	type Unit struct{}
+	var unit Unit
+
+	plain := map[string]string{
+		"layout":             "widget_layout",
 		"template_variables": "template_variable",
 		"widgets":            "widget",
 	}
-	if tk, ok := mapping[jk]; ok {
+	if tk, ok := plain[jk]; ok {
 		return tk
 	}
+
+	// Some keys need a resolution process, e.g. OneOf like widget.definition.
+	// Keys which have no plain conversion and no resolvable conversion pass through for robustness.
+	if _, ok := map[string]Unit{
+		"definition": unit,
+	}[jk]; !ok {
+		return jk
+	}
+	path = path.Push(jk)
+	s := schemaindexer.Index(path.Slice())
+	ref := s.ParentProxy.GetReference()
+	discriminator, ok := schemaindexer.Discriminators[ref]
+	if !ok {
+		log.Fatalf("discriminator for %q not found", ref)
+	}
+	_ = schemaindexer.Index(path.Push(discriminator).Slice())
+	log.Printf("[INFO] discriminator for %q found as %q", ref, discriminator)
 	return jk
 }
 

@@ -17,6 +17,8 @@ func (arg *TFArgument) Render(w io.Writer, depth int) error {
 	switch v := arg.Value.(type) {
 	case bool:
 		return arg.renderBool(w, depth)
+	case int:
+		return arg.renderInt(w, depth)
 	case string:
 		return arg.renderString(w, depth)
 	case []any:
@@ -40,6 +42,16 @@ func (arg *TFArgument) renderBool(w io.Writer, depth int) error {
 	return err
 }
 
+func (arg *TFArgument) renderInt(w io.Writer, depth int) error {
+	out := Indent(depth)
+	out += fmt.Sprintf("%s\t= %d", arg.Name, arg.Value)
+	if arg.Deprecation != "" {
+		out = out + "\t// " + arg.Deprecation
+	}
+	_, err := fmt.Fprintln(w, out)
+	return err
+}
+
 func (arg *TFArgument) renderSlice(w io.Writer, depth int) error {
 	baseIndent := Indent(depth)
 	out := baseIndent
@@ -50,6 +62,14 @@ func (arg *TFArgument) renderSlice(w io.Writer, depth int) error {
 	if !ok {
 		return fmt.Errorf("%s is not a slice %T", arg.Name, arg.Value)
 	}
+	if len(vs) == 0 {
+		out += fmt.Sprintf("%s\t= []", arg.Name)
+		if arg.Deprecation != "" {
+			out = out + "\t// " + arg.Deprecation
+		}
+		_, err := fmt.Fprintln(w, out)
+		return err
+	}
 	sl := make([]string, len(vs))
 	childIndent := Indent(depth + 1)
 	prefix, sep, suffix := "", ", ", ""
@@ -59,7 +79,15 @@ func (arg *TFArgument) renderSlice(w io.Writer, depth int) error {
 		suffix = ",\n" + baseIndent
 	}
 	for i, v := range vs {
-		sl[i] = fmt.Sprintf("%q", v)
+		var format string
+		switch v.(type) {
+		case nil:
+			format = "null"
+		default:
+			// XXX check if we need other specific formats
+			format = "%v" // Good for most scalar types
+		}
+		sl[i] = fmt.Sprintf(format, v)
 	}
 	out += fmt.Sprintf("%s\t= [%s]", arg.Name, prefix+strings.Join(sl, sep)+suffix)
 	if arg.Deprecation != "" {

@@ -21,11 +21,11 @@ func Test_assignmentString(t *testing.T) {
 		inputValue any
 		expected   string
 	}{
-		{"integer value", "i", 7, "i = 7\n"},
+		{"integer value", "i", 7, "i\t= 7\n"},
 		{"nil value", "i", nil, ""},
-		{"single-line string", "sls", "foo", "sls = \"foo\"\n"},
-		{"multi-line string", "mls", "foo\nbar", "mls = <<EOF\nfoo\nbar\nEOF\n"},
-		{"single-line strings list", "slsl", []string{"foo", "bar"}, "slsl = [\"foo\",\"bar\"]\n"},
+		{"single-line string", "sls", "foo", "sls\t= \"foo\"\n"},
+		{"multi-line string", "mls", "foo\nbar", "mls\t= <<EOF\nfoo\nbar\nEOF\n"},
+		{"single-line strings list", "slsl", []string{"foo", "bar"}, "slsl\t= [\"foo\",\"bar\"]\n"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			if actual := AssignmentString(test.inputName, test.inputValue); actual != test.expected {
@@ -38,8 +38,8 @@ func Test_assignmentString(t *testing.T) {
 func Test_block(t *testing.T) {
 	input := j1
 	const expected = `my_block {
-a_cool_key = "a cool value"
-another_key = "another value"
+a_cool_key	= "a cool value"
+another_key	= "another value"
 }
 `
 
@@ -51,12 +51,12 @@ another_key = "another value"
 func Test_blockList(t *testing.T) {
 	input := converter.Jmaps{j1, j2}
 	const expected = `my_block {
-a_cool_key = "a cool value"
-another_key = "another value"
+a_cool_key	= "a cool value"
+another_key	= "another value"
 }
 my_block {
-a_cool_key = "another cool value"
-another_key = "another ANOTHER value"
+a_cool_key	= "another cool value"
+another_key	= "another ANOTHER value"
 }
 `
 	if actual := blockList(input, "my_block", AssignmentString); actual != expected {
@@ -71,7 +71,7 @@ func Test_convertFromDefinition(t *testing.T) {
 		expected        string
 		expectedSuccess bool
 	}{
-		{"existing key", "is_read_only", "is_read_only = false\n", true},
+		{"existing key", "is_read_only", "is_read_only\t= false\n", true},
 		{"nonexistent key", "not a thing", "", false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -128,8 +128,8 @@ func Test_JmapsFromAny(t *testing.T) {
 
 func Test_mapContents(t *testing.T) {
 	input := j1
-	const expected = `a_cool_key = "a cool value"
-another_key = "another value"
+	const expected = `a_cool_key	= "a cool value"
+another_key	= "another value"
 `
 	if actual := mapContents(input, AssignmentString); actual != expected {
 		t.Errorf("mapContents output did not match: %v\n", cmp.Diff(expected, actual))
@@ -140,8 +140,8 @@ func Test_queryBlock(t *testing.T) {
 	input := j1
 	const expected = `query {
   q1 {
-a_cool_key = "a cool value"
-another_key = "another value"
+a_cool_key	= "a cool value"
+another_key	= "another value"
 }
 }
 `
@@ -154,14 +154,14 @@ func Test_queryBlockList(t *testing.T) {
 	input := converter.Jmaps{j1, j2}
 	const expected = `query {
   metric_query {
-a_cool_key = "a cool value"
-another_key = "another value"
+a_cool_key	= "a cool value"
+another_key	= "another value"
 }
 }
 query {
   metric_query {
-a_cool_key = "another cool value"
-another_key = "another ANOTHER value"
+a_cool_key	= "another cool value"
+another_key	= "another ANOTHER value"
 }
 }
 `

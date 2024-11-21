@@ -30,10 +30,13 @@
   * TypeString
     * Examples: `title`, `layout_type`
 * TypeList (= ordered list, duplicates allowed)
-  * Examples: 
+  * Examples:
     * `tags`: list of strings, on some resources
     * `template_variable`: block (list of `Resource`)
     * `widget`: block (list of resource)
+    * `widget_layout`: block of length 0|1
+      * provided as a map instead of slice of length 1.
+      * not provided instead of slice of length 0.
 * TypeMap (= K/V, unordered, no duplicates)
   * rarely used: only 4 outside tests in the 3.46.0 provider
     * `permissions` on `datadog` (what is that ?)

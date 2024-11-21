@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	// discriminators is a map of the references of the oneOfs in the schema,
+	// Discriminators is a map of the references of the oneOfs in the schema,
 	// to the SchemaMap.Properties map entry used to discriminate them, e.g. "type"
 	// for a widget, or "data_source" for a query_value request.
-	discriminators = map[string]string{
+	Discriminators = map[string]string{
 		// TODO complete the 24 missing ones as needed.
 		// #/components/schemas/DistributionPoint
 		// #/components/schemas/DistributionWidgetHistogramRequestQuery
@@ -72,7 +72,7 @@ func selectObjectProperty(cur *base.Schema, selector any) *base.Schema {
 
 	curSP := cur.Properties.GetOrZero(sel)
 	if curSP == nil {
-		log.Fatalf("no such property %v", sel)
+		log.Fatalf("no such property %#v", sel)
 	}
 	cur, err := curSP.BuildSchema()
 	if err != nil {
@@ -93,7 +93,7 @@ func selectOneOfVariant(cur *base.Schema, selector any) *base.Schema {
 		log.Fatalf("OneOf selector must be a string, got %v (%v)", selector, reflect.TypeOf(selector))
 	}
 	name := cur.ParentProxy.GetReference()
-	if discriminator, ok = discriminators[name]; !ok {
+	if discriminator, ok = Discriminators[name]; !ok {
 		log.Fatalf("no discriminator found for %q", name)
 	}
 

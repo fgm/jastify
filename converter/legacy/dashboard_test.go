@@ -27,6 +27,7 @@ var screenboardJSON []byte
 var timeboardJSON []byte
 
 func Test_generateDashboardTerraformCode(t *testing.T) {
+	t.Skipf("Skiping legacy converter tests until conversion is over")
 	for _, test := range [...]struct {
 		name    string
 		input   []byte

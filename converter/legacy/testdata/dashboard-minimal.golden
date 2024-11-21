@@ -1,3 +1,3 @@
 resource "datadog_dashboard" "dashboard-minimal" {
-title = "An example screenboard which causes the issue"
+title	= "An example screenboard which causes the issue"
 }

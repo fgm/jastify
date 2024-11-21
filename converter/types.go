@@ -23,3 +23,17 @@ func JmapsFromAny(v any) (Jmaps, error) {
 	return items, nil
 }
 
+func JmapFromAny(v any) (Jmap, error) {
+	shortcut, ok := v.(Jmap)
+	if ok {
+		return shortcut, nil
+	}
+	slice, err := JmapsFromAny(v)
+	if err != nil {
+		return nil, err
+	}
+	if len(slice) != 1 {
+		return nil, fmt.Errorf("items expected as convertible to Jmaps of len 1 but got %T: %#v", v, v)
+	}
+	return slice[0], nil
+}
