@@ -63,36 +63,59 @@ func GenerateDashboardTerraformCode(w io.Writer, tfResourceName string, jData co
 	return nil
 }
 
-func terraformKeyFromJsonKey(path converter.Path, jk string) string {
+func terraformKeyFromJsonKey(path converter.Path, jk string, props any) (tk string, discriminator string, selector string) {
 	type Unit struct{}
 	var unit Unit
 
 	plain := map[string]string{
+		"formulas":           "formula",
+		"formula":            "formula_expression",
 		"layout":             "widget_layout",
+		"queries":            "query",
+		"requests":           "request",
 		"template_variables": "template_variable",
 		"widgets":            "widget",
 	}
 	if tk, ok := plain[jk]; ok {
-		return tk
+		return tk, discriminator, ""
 	}
 
 	// Some keys need a resolution process, e.g. OneOf like widget.definition.
 	// Keys which have no plain conversion and no resolvable conversion pass through for robustness.
 	if _, ok := map[string]Unit{
 		"definition": unit,
+		// "data_source": unit,
 	}[jk]; !ok {
-		return jk
+		return jk, discriminator, ""
+	}
+	// To resolve, we need to first find the property allowing us to discriminate
+	// between the alternatives in the oneOf.
+	// TODO handle anyOf, allOf too.
+
+	// This starts by ensuring we have something from which to fetch the discriminator,
+	// when we have it. Ensure that first, as it is cheaper than the schemaindexer.Index() call.
+	jm, ok := props.(converter.Jmap)
+	if !ok {
+		log.Fatalf("expected props to be a Jmap but got %T", props)
 	}
 	path = path.Push(jk)
 	s := schemaindexer.Index(path.Slice())
 	ref := s.ParentProxy.GetReference()
-	discriminator, ok := schemaindexer.Discriminators[ref]
+	discriminator, ok = schemaindexer.Discriminators[ref]
 	if !ok {
 		log.Fatalf("discriminator for %q not found", ref)
 	}
-	_ = schemaindexer.Index(path.Push(discriminator).Slice())
-	log.Printf("[INFO] discriminator for %q found as %q", ref, discriminator)
-	return jk
+	v, ok := jm[discriminator]
+	if !ok {
+		log.Fatalf("discriminator %q not found for %q in %v", discriminator, jk, jm)
+	}
+	selector, ok = v.(string)
+	if !ok {
+		log.Fatalf("discriminator %q not a string", discriminator)
+	}
+	// FIXME probably not always "_definition". Check for other oneOfs beyond widgets.
+	tk = selector + "_definition"
+	return tk, discriminator, selector
 }
 
 // Returning nil means any value is valid.

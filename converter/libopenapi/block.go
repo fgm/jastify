@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/fgm/jastify/cmd/apischema/libopenapi/index/schemaindexer"
 	"github.com/fgm/jastify/converter"
 )
 
@@ -67,10 +66,10 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 			continue
 		}
 		// FIXME
-		if jk == "definition" {
+		if jk == "Zdefinition" {
 			continue
 		}
-		tk := terraformKeyFromJsonKey(path, jk)
+		tk, discriminator, selector := terraformKeyFromJsonKey(path, jk, v)
 		tvs, known := b.SchemaMap[tk]
 		if !known {
 			tvs = &schema.Schema{Type: schema.TypeInvalid}
@@ -126,15 +125,20 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 					if !ok {
 						log.Fatalf("key %q (JSON: %q) is not a list", tk, jk)
 					}
-					js := schemaindexer.Index(path.Push(jk).Slice())
-					log.Println(js.Type)
+					path := path.Push(jk)
+					if selector != "" {
+						path = path.Push(selector)
+					}
 					for _, item := range vs {
 						cb := TFBlock{SchemaMap: t.SchemaMap(), Type: tk}
 						jv, err := converter.JmapFromAny(item)
 						if err != nil {
 							log.Fatalf("failer JMaps conversion for %#v: %v", item, err)
 						}
-						cb.Set(path.Push(jk), jv)
+						if discriminator != "" {
+							delete(jv, discriminator)
+						}
+						cb.Set(path, jv)
 						b.Blocks = append(b.Blocks, cb)
 					}
 
@@ -159,7 +163,7 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 			goto retry
 		}
 	}
-	b.ResolveConflicts()
+	//b.ResolveConflicts()
 }
 
 // ResolveConflicts removes conflicting arguments, under multiple assumptions:
