@@ -65,10 +65,6 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 		if jk == "id" {
 			continue
 		}
-		// FIXME
-		if jk == "Zdefinition" {
-			continue
-		}
 		tk, discriminator, selector := terraformKeyFromJsonKey(path, jk, v)
 		tvs, known := b.SchemaMap[tk]
 		if !known {
@@ -101,8 +97,12 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 			b.Arguments = append(b.Arguments, arg)
 
 		case schema.TypeFloat:
-			tvs.Type = schema.TypeInvalid
-			goto retry
+			fv, ok := v.(float64)
+			if !ok {
+				log.Fatalf("key %q (JSON: %q) = %#v is not a float64", tk, jk, v)
+			}
+			arg := TFArgument{Name: tk, Value: fv}
+			b.Arguments = append(b.Arguments, arg)
 
 		case schema.TypeString:
 			sv, ok := v.(string)

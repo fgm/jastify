@@ -42,7 +42,8 @@
                   "response_format": "event_list",
                   "formulas": [
                     {
-                      "formula": "query1"
+                      "formula": "query1",
+                      "alias": "q1"
                     },
                     {
                       "formula": "query2"
