@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/fgm/jastify/converter"
+	legacy "github.com/fgm/jastify/converter/legacy"
 )
 
 func main() {
@@ -49,13 +50,15 @@ func main() {
 		if resourceName == "" {
 			resourceName = "monitor_1"
 		}
-		tf = converter.Must(converter.GenerateMonitorTerraformCode(resourceName, parsedJson))
+		resourceName = legacy.ResourceName(resourceName)
+		tf = converter.Must(legacy.GenerateMonitorTerraformCode(resourceName, parsedJson))
 	} else {
 		if resourceName == "" {
 			resourceName = "dashboard_1"
 		}
-		tf = converter.Must(converter.GenerateDashboardTerraformCode(resourceName, parsedJson))
+		resourceName = legacy.ResourceName(resourceName)
+		tf = converter.Must(legacy.GenerateDashboardTerraformCode(resourceName, parsedJson))
 	}
 
-	fmt.Println(tf)
+	fmt.Print(tf)
 }

@@ -3,15 +3,11 @@ description = ""
 is_read_only = false
 layout_type = "free"
 notify_list = []
-
 title = "Laura's Screenboard 7 Sep 2020 13:18"
-
 widget {
-
 timeseries_definition {
 legend_columns = ["avg","min","max","value","sum"]
 legend_layout = "vertical"
-
 marker {
 display_type = "error dashed"
 label = " y = 5 "
@@ -22,11 +18,9 @@ display_type = "error dashed"
 label = " y = 10 "
 value = "y = 10"
 }
-
 request {
 display_type = "line"
 q = "avg:system.cpu.user{*}"
-
 style {
 line_type = "solid"
 line_width = "normal"
@@ -53,16 +47,13 @@ y = 17
 }
 }
 widget {
-
 timeseries_definition {
-
 request {
 display_type = "line"
 log_query {
 compute_query {
 aggregation = "count"
 }
-
 group_by {
 facet = "service"
 limit = 10
@@ -74,7 +65,6 @@ order = "desc"
 index = "*"
 search_query = "status:(error OR emergency)"
 }
-
 style {
 line_type = "solid"
 line_width = "normal"
@@ -94,12 +84,9 @@ y = 17
 }
 }
 widget {
-
 heatmap_definition {
-
 request {
 q = "avg:system.cpu.user{*}"
-
 style {
 palette = "dog_classic"
 }
@@ -117,11 +104,9 @@ y = 0
 }
 }
 widget {
-
 query_value_definition {
 autoscale = true
 precision = 2
-
 request {
 aggregator = "avg"
 q = "avg:datadog.agent.running{*}"
@@ -138,16 +123,12 @@ y = 33
 }
 }
 widget {
-
 timeseries_definition {
 legend_columns = ["avg","min","max","value","sum"]
 legend_layout = "vertical"
-
-
 request {
 display_type = "line"
 q = "avg:system.cpu.user{*}"
-
 style {
 line_type = "solid"
 line_width = "normal"
@@ -175,7 +156,6 @@ y = -1
 }
 }
 widget {
-
 service_level_objective_definition {
 global_time_target = "5"
 show_error_budget = true
@@ -195,7 +175,6 @@ y = 50
 }
 }
 widget {
-
 hostmap_definition {
 no_group_hosts = true
 no_metric_hosts = true
@@ -221,7 +200,6 @@ y = 17
 }
 }
 widget {
-
 manage_status_definition {
 color_preference = "text"
 display_format = "list"
@@ -241,7 +219,6 @@ y = 40
 }
 }
 widget {
-
 note_definition {
 background_color = "vivid_orange"
 content = <<EOF
@@ -262,7 +239,6 @@ y = 1
 }
 }
 widget {
-
 log_stream_definition {
 indexes = []
 message_display = "expanded-md"

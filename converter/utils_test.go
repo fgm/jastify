@@ -2,141 +2,13 @@ package converter
 
 import (
 	"errors"
-	"regexp"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
 
-var (
-	j1 = Jmap{"a_cool_key": "a cool value", "another_key": "another value"}
-	j2 = Jmap{"a_cool_key": "another cool value", "another_key": "another ANOTHER value"}
-)
-
-func Test_assignmentString(t *testing.T) {
-	for _, test := range [...]struct {
-		name       string
-		inputName  string
-		inputValue any
-		expected   string
-	}{
-		{"integer value", "i", 7, "\ni = 7"},
-		{"nil value", "i", nil, ""},
-		{"single-line string", "sls", "foo", "\nsls = \"foo\""},
-		{"multi-line string", "mls", "foo\nbar", "\nmls = <<EOF\nfoo\nbar\nEOF"},
-		{"single-line strings list", "slsl", []string{"foo", "bar"}, "\nslsl = [\"foo\",\"bar\"]"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			if actual := assignmentString(test.inputName, test.inputValue); actual != test.expected {
-				t.Errorf(`assignment string %v`, cmp.Diff(actual, test.expected))
-			}
-		})
-	}
-}
-
-func Test_block(t *testing.T) {
-	input := j1
-	const expected = `
-my_block {
-a_cool_key = "a cool value"
-another_key = "another value"
-}`
-
-	if actual := block("my_block", input, assignmentString); actual != expected {
-		t.Errorf("block output did not match: %v\n", cmp.Diff(expected, actual))
-	}
-}
-
-func Test_blockList(t *testing.T) {
-	input := Jmaps{j1, j2}
-	const expected = `
-
-my_block {
-a_cool_key = "a cool value"
-another_key = "another value"
-}
-my_block {
-a_cool_key = "another cool value"
-another_key = "another ANOTHER value"
-}`
-	if actual := blockList(input, "my_block", assignmentString); actual != expected {
-		t.Errorf("blockList output did not match: %v\n", cmp.Diff(expected, actual))
-	}
-}
-
-func Test_convertFromDefinition(t *testing.T) {
-	for _, test := range [...]struct {
-		name            string
-		input           string
-		expected        string
-		expectedSuccess bool
-	}{
-		{"existing key", "is_read_only", "\nis_read_only = false", true},
-		{"nonexistent key", "not a thing", "", false},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			actual, err := convertFromDefinition(DASHBOARD, test.input, false)
-			if actual != test.expected {
-				t.Errorf("convertFromDefinition output did not match: %v\n", cmp.Diff(actual, test.expected))
-			}
-			if err == nil != test.expectedSuccess {
-				t.Errorf("convertFromDefinition error did not match: %v\n", cmp.Diff(err, test.expectedSuccess))
-			}
-		})
-	}
-}
-
-func Test_JmapsFromAny(t *testing.T) {
-	var (
-		normalInput  = []any{j1, j2}
-		normalOutput = Jmaps{j1, j2}
-		nj           = []any{"", []any(nil)}
-	)
-
-	for _, test := range [...]struct {
-		name     string
-		input    any
-		expected Jmaps
-		errorRx  string
-	}{
-		{"non-slice", "foo", nil, `^items expected as \[\]any but got`},
-		{"empty slice of strings", []string{}, nil, `^items expected as \[\]any but got`},
-		{"empty slice of any", []any{}, make(Jmaps, 0), ""},
-		{"nil", nil, nil, `^items expected as \[\]any but got`},
-		{"slice of any non-Jmap", nj, nil, `^item \[[\d]+\] expected as Jmap but got`},
-		{"normal Jmaps", normalInput, normalOutput, ""},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			actual, err := JmapsFromAny(test.input)
-			if !cmp.Equal(actual, test.expected) {
-				t.Errorf("JmapsFromAny output did not match: %v\n", cmp.Diff(actual, test.expected))
-			}
-			switch {
-			case test.errorRx == "" && err != nil:
-				t.Errorf("JmapsFromAny unexpected error: %v\n", err)
-			case test.errorRx != "" && err == nil:
-				t.Errorf("JmapsFromAny did not expect an error but got %#v\n", err)
-			case test.errorRx != "" && err != nil:
-				rx := regexp.MustCompile(test.errorRx)
-				if !rx.MatchString(err.Error()) {
-					t.Errorf("JmapsFromAny expected error to match %q but got %s\n", rx.String(), err)
-				}
-			}
-		})
-	}
-}
-
-func Test_mapContents(t *testing.T) {
-	input := j1
-	const expected = `
-a_cool_key = "a cool value"
-another_key = "another value"`
-	if actual := mapContents(input, assignmentString); actual != expected {
-		t.Errorf("mapContents output did not match: %v\n", cmp.Diff(expected, actual))
-	}
-}
-
 func TestMust(t *testing.T) {
+	t.Parallel()
 	for _, test := range [...]struct {
 		name        string
 		err         error
@@ -146,6 +18,7 @@ func TestMust(t *testing.T) {
 		{"failure", errors.New(""), true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			defer func() {
 				if r := recover(); r != nil {
 					if !test.expecdPanic {
@@ -153,7 +26,9 @@ func TestMust(t *testing.T) {
 					}
 				}
 			}()
-			actual := Must(func() (any, error) { return "foo", test.err }())
+			actual := Must(func() (any, error) {
+				return "foo", test.err
+			}())
 			if actual != "foo" {
 				t.Errorf("expected 'foo', got '%v'", actual)
 			}
@@ -161,37 +36,69 @@ func TestMust(t *testing.T) {
 	}
 }
 
-func Test_queryBlock(t *testing.T) {
-	input := j1
-	const expected = `
-query {
+func TestPath_Push(t *testing.T) {
+	t.Parallel()
+	const one = "one"
+	sliceOfOne := []string{one}
+	pathOfOne := Path{sliceOfOne}
 
-  q1 {
-a_cool_key = "a cool value"
-another_key = "another value"
-}}`
-	if actual := queryBlock("q1", input, assignmentString); actual != expected {
-		t.Errorf("queryBlock output did not match: %v\n", cmp.Diff(expected, actual))
+	for _, test := range [...]struct {
+		name   string
+		before []string
+		after  []string
+		result Path
+	}{
+		{"nil", nil, nil, pathOfOne},
+		{"empty", []string{}, []string{}, pathOfOne},
+		{"one", sliceOfOne, sliceOfOne, Path{[]string{one, one}}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			path := Path{Data: test.before}
+			actual := path.Push(one)
+			if !cmp.Equal(path, Path{test.after}) {
+				t.Errorf("path was modified: %s\n", cmp.Diff(path, Path{test.after}))
+			}
+			if !cmp.Equal(actual, test.result) {
+				t.Errorf("unexpected output: %s\n", cmp.Diff(actual, test.result))
+			}
+		})
 	}
 }
 
-func Test_queryBlockList(t *testing.T) {
-	input := Jmaps{j1, j2}
-	const expected = `
+func TestPath_Pop(t *testing.T) {
+	t.Parallel()
+	const one = "one"
+	nilPath := Path{}
+	emptyPath := Path{make([]string, 0)}
+	sliceOfOne := []string{one}
+	pathOfOne := Path{sliceOfOne}
 
-query {
-
-  metric_query {
-a_cool_key = "a cool value"
-another_key = "another value"
-}}
-query {
-
-  metric_query {
-a_cool_key = "another cool value"
-another_key = "another ANOTHER value"
-}}`
-	if actual := queryBlockList(input, assignmentString); actual != expected {
-		t.Errorf("queryBlockList output did not match: %v\n", cmp.Diff(expected, actual))
+	for _, test := range [...]struct {
+		name          string
+		before        []string
+		after         []string
+		expectedPath  Path
+		expectedValue string
+	}{
+		{"nil", nil, nil, nilPath, ""},
+		{"empty", []string{}, []string{}, emptyPath, ""},
+		{"one", sliceOfOne, sliceOfOne, emptyPath, one},
+		{"two", []string{one, one}, []string{one, one}, pathOfOne, one},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			before := Path{Data: test.before}
+			actualPath, actualValue := before.Pop()
+			if !cmp.Equal(before, Path{test.after}) {
+				t.Errorf("before was modified: %s\n", cmp.Diff(before, Path{test.after}))
+			}
+			if !cmp.Equal(actualPath, test.expectedPath) {
+				t.Errorf("unexpected output: %s\n", cmp.Diff(actualPath, test.expectedPath))
+			}
+			if !cmp.Equal(actualValue, test.expectedValue) {
+				t.Errorf("unexpected output: %s\n", cmp.Diff(actualValue, test.expectedValue))
+			}
+		})
 	}
 }

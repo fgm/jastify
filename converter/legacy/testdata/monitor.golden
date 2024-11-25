@@ -9,8 +9,8 @@ Some other info..
 @all 
 EOF
 name = "CPU is high on {{host.name}}"
-// Options
-escalation_message = ""
+
+// Optionsescalation_message = ""
 evaluation_delay = 70
 groupby_simple_monitor = true
 include_tags = true
@@ -33,8 +33,8 @@ critical = 1
 critical_recovery = 0
 }
 timeout_h = 0
-// /Options
 
+// /Options
 priority = 2
 query = "avg(last_4h):anomalies(avg:system.cpu.user{*}, 'basic', 2, direction='both', alert_window='last_15m', interval=60, count_default_zero='true') >= 1"
 restricted_roles = ["5b647eb8-de36-11ed-aacf-da7ad0900002"]

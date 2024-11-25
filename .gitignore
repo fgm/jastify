@@ -3,3 +3,6 @@
 .run
 *.iml
 .history
+
+cmd/*/openapi.yaml
+/jastify

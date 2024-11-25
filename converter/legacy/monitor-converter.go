@@ -1,9 +1,11 @@
-package converter
+package legacy
 
 import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/fgm/jastify/converter"
 )
 
 // MONITOR and OPTIONS definitions
@@ -13,8 +15,8 @@ var MONITOR = map[string]stringFunc{
 	"query":   stringGen("query"),
 	"type":    stringGen("type"),
 	"options": func(v any) string {
-		return "\n// Options" + mapContents(v.(Jmap), func(k1 string, v1 any) string {
-			return Must(convertFromDefinition(OPTIONS, k1, v1))
+		return "\n// Options" + mapContents(v.(converter.Jmap), func(k1 string, v1 any) string {
+			return converter.Must(convertFromDefinition(OPTIONS, k1, v1))
 		}) + "\n// /Options\n"
 	},
 	"id":               blankGen,
@@ -43,16 +45,16 @@ var OPTIONS = map[string]stringFunc{
 	"restricted_roles":       stringGen("restricted_roles"),
 	"silenced":               blankGen, // Deprecated
 	"threshold_windows": func(v any) string {
-		return block("monitor_threshold_windows", v.(Jmap), assignmentString)
+		return block("monitor_threshold_windows", v.(converter.Jmap), AssignmentString)
 	},
 	"thresholds": func(v any) string {
-		return block("monitor_thresholds", v.(Jmap), assignmentString)
+		return block("monitor_thresholds", v.(converter.Jmap), AssignmentString)
 	},
 	"timeout_h": stringGen("timeout_h"),
 	"validate":  stringGen("timeout_h"),
 }
 
-func GenerateMonitorTerraformCode(resourceName string, data Jmap) (string, error) {
+func GenerateMonitorTerraformCode(resourceName string, data converter.Jmap) (string, error) {
 	var (
 		result strings.Builder
 		keys   = make([]string, 0, len(data))
@@ -68,5 +70,5 @@ func GenerateMonitorTerraformCode(resourceName string, data Jmap) (string, error
 		}
 		result.WriteString(s)
 	}
-	return fmt.Sprintf("resource \"datadog_monitor\" \"%s\" {%s\n}", resourceName, result.String()), nil
+	return fmt.Sprintf("resource \"datadog_monitor\" \"%s\" {\n%s}\n", resourceName, result.String()), nil
 }
