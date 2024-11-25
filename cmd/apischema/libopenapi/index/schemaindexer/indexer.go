@@ -16,33 +16,33 @@ var (
 	// to the SchemaMap.Properties map entry used to discriminate them, e.g. "type"
 	// for a widget, or "data_source" for a query_value request.
 	Discriminators = map[string]string{
-		// TODO complete the 24 missing ones as needed.
-		// #/components/schemas/DistributionPoint
-		// #/components/schemas/DistributionWidgetHistogramRequestQuery
-		"#/components/schemas/FormulaAndFunctionQueryDefinition": "data_source",
-		// #/components/schemas/LogsProcessor
-		// #/components/schemas/MonitorFormulaAndFunctionQueryDefinition
+		// TODO complete the missing ones as needed.
+		"#/components/schemas/DistributionPoint":                        "type",
+		"#/components/schemas/DistributionWidgetHistogramRequestQuery":  "data_source",
+		"#/components/schemas/FormulaAndFunctionQueryDefinition":        "data_source",
+		"#/components/schemas/LogsProcessor":                            "type",
+		"#/components/schemas/MonitorFormulaAndFunctionQueryDefinition": "data_source",
 		// #/components/schemas/NotebookCellCreateRequestAttributes
 		// #/components/schemas/NotebookCellResponseAttributes
 		// #/components/schemas/NotebookCellTime
 		// #/components/schemas/NotebookCellUpdateRequestAttributes
 		// #/components/schemas/NotebookGlobalTime
 		// #/components/schemas/NotebookUpdateCell
-		// #/components/schemas/SLODataSourceQueryDefinition
-		// #/components/schemas/SLOSliSpec
-		// #/components/schemas/SharedDashboardInvitesData
-		// #/components/schemas/SplitGraphSourceWidgetDefinition
-		// #/components/schemas/SunburstWidgetLegend
+		"#/components/schemas/SLODataSourceQueryDefinition":     "data_source",
+		"#/components/schemas/SLOSliSpec":                       "type",
+		"#/components/schemas/SharedDashboardInvitesData":       "type",
+		"#/components/schemas/SplitGraphSourceWidgetDefinition": "type",
+		"#/components/schemas/SunburstWidgetLegend":             "type",
 		// #/components/schemas/SyntheticsAPIStep
 		// #/components/schemas/SyntheticsAssertion
 		// #/components/schemas/SyntheticsBasicAuth
 		// #/components/schemas/SyntheticsMobileStepParamsValue
 		// #/components/schemas/SyntheticsTestRequestPort
-		// #/components/schemas/TableWidgetTextFormatReplace
-		// #/components/schemas/ToplistWidgetDisplay
-		"#/components/schemas/WidgetDefinition": "type",
-		// #/components/schemas/WidgetSortOrderBy
-		// #/components/schemas/WidgetTime
+		"#/components/schemas/TableWidgetTextFormatReplace": "type",
+		"#/components/schemas/ToplistWidgetDisplay":         "type",
+		"#/components/schemas/WidgetDefinition":             "type",
+		"#/components/schemas/WidgetSortOrderBy":            "type",
+		"#/components/schemas/WidgetTime":                   "type",
 	}
 )
 

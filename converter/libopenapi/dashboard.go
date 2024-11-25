@@ -83,8 +83,8 @@ func terraformKeyFromJsonKey(path converter.Path, jk string, props any) (tk stri
 	// Some keys need a resolution process, e.g. OneOf like widget.definition.
 	// Keys which have no plain conversion and no resolvable conversion pass through for robustness.
 	if _, ok := map[string]Unit{
-		"definition": unit,
-		// "data_source": unit,
+		"definition":  unit,
+		"data_source": unit,
 	}[jk]; !ok {
 		return jk, discriminator, ""
 	}
@@ -96,7 +96,7 @@ func terraformKeyFromJsonKey(path converter.Path, jk string, props any) (tk stri
 	// when we have it. Ensure that first, as it is cheaper than the schemaindexer.Index() call.
 	jm, ok := props.(converter.Jmap)
 	if !ok {
-		log.Fatalf("expected props to be a Jmap but got %T", props)
+		log.Fatalf("expected %q props to be a Jmap but got %#v", jk, props)
 	}
 	path = path.Push(jk)
 	s := schemaindexer.Index(path.Slice())

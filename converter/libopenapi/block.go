@@ -118,8 +118,10 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 				// Provide a child TFBlock for each member of the composite.
 				switch tvs.Type {
 				case schema.TypeList:
+					isMap := false
 					if reflect.ValueOf(v).Kind() == reflect.Map {
 						v = []any{v}
+						isMap = true
 					}
 					vs, ok := v.([]any)
 					if !ok {
@@ -129,6 +131,7 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 					if selector != "" {
 						path = path.Push(selector)
 					}
+					isMap = isMap
 					for _, item := range vs {
 						cb := TFBlock{SchemaMap: t.SchemaMap(), Type: tk}
 						jv, err := converter.JmapFromAny(item)
@@ -163,7 +166,7 @@ func (b *TFBlock) Set(path converter.Path, jm converter.Jmap) {
 			goto retry
 		}
 	}
-	//b.ResolveConflicts()
+	b.ResolveConflicts()
 }
 
 // ResolveConflicts removes conflicting arguments, under multiple assumptions:
