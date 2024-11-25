@@ -83,6 +83,8 @@ func (arg *TFArgument) renderSlice(w io.Writer, depth int) error {
 		switch v.(type) {
 		case nil:
 			format = "null"
+		case string:
+			format = "%q"
 		default:
 			// XXX check if we need other specific formats
 			format = "%v" // Good for most scalar types
